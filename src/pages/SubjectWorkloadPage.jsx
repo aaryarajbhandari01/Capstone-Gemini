@@ -1,15 +1,18 @@
 import React, { useState, useMemo } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
+import BaseAllocationTab from '../component/BaseAllocationTab';
 
 // --- Placeholder Tab Content Components ---
 // These components are placeholders for the actual content of each tab.
+
 const PlaceholderTabContent = ({ title }) => (
   <div style={{ padding: '2rem', backgroundColor: '#fff', borderRadius: '8px', border: '1px solid #dee2e6' }}>
     <h3 style={{ marginTop: 0, color: '#495057' }}>{title}</h3>
     <p style={{ color: '#6c757d' }}>Content for this section will be built out here.</p>
   </div>
 );
-const BaseAllocationTab = () => <PlaceholderTabContent title="Base Allocation" />;
+// const BaseAllocationTab = () => <PlaceholderTabContent title="Base Allocation" />;
+
 const PerDeliveryAllocationTab = () => <PlaceholderTabContent title="Per-delivery Allocation" />;
 const StaffRolesTab = () => <PlaceholderTabContent title="Staff Roles" />;
 const PerStudentAllocationTab = () => <PlaceholderTabContent title="Per-student Allocation" />;
@@ -33,9 +36,23 @@ export default function SubjectWorkloadPage() {
     const TABS_CONFIG = useMemo(() => {
         if (!subject) return {};
         const isLectureBased = subject.formatOfDelivery.toLowerCase().includes('lecture');
-        if (isLectureBased) return { "Base Allocation": <BaseAllocationTab />, "Per-delivery Allocation": <PerDeliveryAllocationTab />, "Staff Roles": <StaffRolesTab />, "Per-student Allocation": <PerStudentAllocationTab />, "Activity Allocation": <ActivityAllocationTab /> };
-        else return { "Base Allocation": <BaseAllocationTab />, "Per-group Allocation": <PerGroupAllocationTab /> };
+        
+        if (isLectureBased) {
+            return {
+                "Base Allocation": <BaseAllocationTab subjectCode={subject.subjectCode} term={subject.term} />,
+                "Per-delivery Allocation": <PerDeliveryAllocationTab />,
+                "Staff Roles": <StaffRolesTab />,
+                "Per-student Allocation": <PerStudentAllocationTab />,
+                "Activity Allocation": <ActivityAllocationTab />
+            };
+        } else {
+            return {
+                "Base Allocation": <BaseAllocationTab subjectCode={subject.subjectCode} term={subject.term} />,
+                "Per-group Allocation": <PerGroupAllocationTab />
+            };
+        }
     }, [subject]);
+
 
     const tabNames = Object.keys(TABS_CONFIG);
     const [activeTab, setActiveTab] = useState(tabNames.length > 0 ? tabNames[0] : null);
