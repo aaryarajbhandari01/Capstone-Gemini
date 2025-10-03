@@ -1,5 +1,6 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
+import WDBaseAllocationTab from '../component/WDBaseAllocationTab';
 
 // --- Static UI Configuration ---
 // This defines the tab structure for different delivery formats.
@@ -44,59 +45,7 @@ const DeleteIcon = () => (
 );
 
 
-// --- Tab Content Components ---
-const BaseAllocationDistributionTab = ({ data }) => {
-    const rows = data?.rows || [];
-    const title = data?.title || 'Base Allocation';
-    const tooltip = data?.tooltip || 'Base allocation tasks.';
 
-    return (
-        <div style={styles.tabContentContainer}>
-            <div style={styles.tabHeader}>
-                <div style={{display: 'flex', alignItems: 'center', gap: '0.5rem'}}>
-                    <h3 style={styles.tabTitle}>{title}</h3>
-                    <span title={tooltip} style={{color: '#6c757d', cursor: 'pointer'}}><InfoIcon /></span>
-                </div>
-                <button style={styles.addButton}><AddIcon /> Add</button>
-            </div>
-            
-            <table style={styles.table}>
-                <thead>
-                    <tr style={styles.tableHeaderRow}>
-                        <th style={{...styles.tableHeaderCell, width: '10%'}}>Actions</th>
-                        <th style={styles.tableHeaderCell}>Task</th>
-                        <th style={{...styles.tableHeaderCell, width: '20%', textAlign: 'right'}}>Allocation</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {rows.length > 0 ? (
-                        rows.map(row => (
-                            <tr key={row.id} style={styles.tableRow}>
-                                <td style={styles.tableCell}>
-                                    <div style={{display: 'flex', gap: '1rem'}}>
-                                        <button style={styles.iconButton}><EditIcon /></button>
-                                        <button style={styles.iconButton}><DeleteIcon /></button>
-                                    </div>
-                                </td>
-                                <td style={styles.tableCell}>{row.task}</td>
-                                <td style={{...styles.tableCell, textAlign: 'right', fontWeight: '500'}}>{row.allocation}</td>
-                            </tr>
-                        ))
-                    ) : (
-                        <tr>
-                            <td colSpan="3" style={{padding: '2rem', textAlign: 'center', color: '#6c757d'}}>
-                                No base allocation tasks found for this subject.
-                            </td>
-                        </tr>
-                    )}
-                </tbody>
-            </table>
-            <footer style={styles.tabFooter}>
-                <button style={styles.button('primary')}>Save</button>
-            </footer>
-        </div>
-    );
-};
 
 const PlaceholderDistributionTab = ({ title }) => (
     <div style={styles.tabContentContainer}>
@@ -111,6 +60,7 @@ export default function WorkloadDistributionPage() {
     const navigate = useNavigate();
     const location = useLocation();
     const { subject } = location.state || {}; 
+    
 
     const TABS_CONFIG = useMemo(() => {
         if (!subject?.formatOfDelivery) return { tabs: [], defaultTab: null };
@@ -130,7 +80,10 @@ export default function WorkloadDistributionPage() {
     const TABS_CONTENT_MAP = useMemo(() => {
         if (!subject) return {};
         return {
-            baseAllocation: <BaseAllocationDistributionTab data={subject.tabData?.baseAllocation} />,
+            // baseAllocation: <BaseAllocationDistributionTab data={subject.tabData?.baseAllocation} />,
+                    // v-- 2. REPLACE THE OLD COMPONENT WITH THE NEW ONE
+            baseAllocation: <WDBaseAllocationTab subject={subject} />,
+            // ^-- The 'subject' object now contains totalAvailableWorkload
             perDeliveryAllocation: <PlaceholderDistributionTab title="Per-delivery Allocation" />,
             perStudentActivityAllocation: <PlaceholderDistributionTab title="Per-student / Per-activity Allocation" />,
             summary: <PlaceholderDistributionTab title="Summary" />

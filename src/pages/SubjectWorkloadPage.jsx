@@ -1,6 +1,7 @@
 import React, { useState, useMemo } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
-import BaseAllocationTab from '../component/BaseAllocationTab';
+import SWBaseAllocationTab from '../component/SWBaseAllocationTab';
+import PerGroupAllocationTab from '../component/PerGroupAllocationTab'; 
 
 // --- Placeholder Tab Content Components ---
 // These components are placeholders for the actual content of each tab.
@@ -17,7 +18,7 @@ const PerDeliveryAllocationTab = () => <PlaceholderTabContent title="Per-deliver
 const StaffRolesTab = () => <PlaceholderTabContent title="Staff Roles" />;
 const PerStudentAllocationTab = () => <PlaceholderTabContent title="Per-student Allocation" />;
 const ActivityAllocationTab = () => <PlaceholderTabContent title="Activity Allocation" />;
-const PerGroupAllocationTab = () => <PlaceholderTabContent title="Per-group Allocation" />;
+// const PerGroupAllocationTab = () => <PlaceholderTabContent title="Per-group Allocation" />;
 
 // --- Icon and Helper Components ---
 const BackIcon = () => (
@@ -31,15 +32,43 @@ export default function SubjectWorkloadPage() {
     const navigate = useNavigate();
     const location = useLocation();
     const { subject } = location.state || {};
-    const [subjectWorkloadStatus, setSubjectWorkloadStatus] = useState('incomplete');
+    
+    // State to store the base allocation calculated in the child tab
+    const [baseAllocationValue, setBaseAllocationValue] = useState(0);
+    const [perGroupAllocationValue, setPerGroupAllocationValue] = useState(0);
 
+    // State for the summary panel and tab status
+    
+    // Handler to update the base allocation state
+    // const handleBaseAllocationChange = (calculatedValue) => {
+    //     setBaseAllocationValue(calculatedValue);
+    // };
+    const handleBaseAllocationChange = (value) => setBaseAllocationValue(value);
+    const handlePerGroupAllocationChange = (value) => setPerGroupAllocationValue(value);
+
+
+    const [subjectWorkloadStatus, setSubjectWorkloadStatus] = useState('incomplete');
+    const [summaryData, setSummaryData] = useState({
+        total_subject_workload: subject?.totalSubjectWorkload || '0.0%',
+        total_eftsl_for_subject: "12.5",
+        total_administrative_loadings: "0.0%"
+    });
+
+    // Callback function to update the summary
+    const handleAllocationChange = (allocationValue) => {
+        const workloadPercentage = allocationValue !== null ? (allocationValue * 100).toFixed(1) : 0.0;
+        setSummaryData(prevData => ({
+            ...prevData,
+            total_subject_workload: `${workloadPercentage}%`
+        }));
+    };
     const TABS_CONFIG = useMemo(() => {
         if (!subject) return {};
         const isLectureBased = subject.formatOfDelivery.toLowerCase().includes('lecture');
         
         if (isLectureBased) {
             return {
-                "Base Allocation": <BaseAllocationTab subjectCode={subject.subjectCode} term={subject.term} />,
+                "Base Allocation": <SWBaseAllocationTab subjectCode={subject.subjectCode} term={subject.term}   onBaseAllocationChange={handleBaseAllocationChange} />,
                 "Per-delivery Allocation": <PerDeliveryAllocationTab />,
                 "Staff Roles": <StaffRolesTab />,
                 "Per-student Allocation": <PerStudentAllocationTab />,
@@ -47,8 +76,8 @@ export default function SubjectWorkloadPage() {
             };
         } else {
             return {
-                "Base Allocation": <BaseAllocationTab subjectCode={subject.subjectCode} term={subject.term} />,
-                "Per-group Allocation": <PerGroupAllocationTab />
+                "Base Allocation": <SWBaseAllocationTab subjectCode={subject.subjectCode} term={subject.term} onBaseAllocationChange={handleBaseAllocationChange} />,
+                "Per-group Allocation": <PerGroupAllocationTab onPerGroupAllocationChange={handlePerGroupAllocationChange} onAllocationChange={handleAllocationChange}/>
             };
         }
     }, [subject]);
@@ -74,9 +103,11 @@ export default function SubjectWorkloadPage() {
                     <Stepper currentStep={1} />
                 </div>
                 <div style={styles.rightColumn}>
-                    <SubjectDetailsPanel subject={subject} summary={subjectSummaryData} />
-                    <div style={styles.tabsContainer}>{tabNames.map(tabName => (<button key={tabName} style={activeTab === tabName ? styles.tabButtonActive : styles.tabButton} onClick={() => setActiveTab(tabName)}>{tabName}</button>))}</div>
+                     {/* Pass the dynamic summaryData state to the panel */}
+                    <SubjectDetailsPanel subject={subject} summary={summaryData} />
+                <div style={styles.tabsContainer}>{tabNames.map(tabName => (<button key={tabName} style={activeTab === tabName ? styles.tabButtonActive : styles.tabButton} onClick={() => setActiveTab(tabName)}>{tabName}</button>))}</div>
                     <main style={styles.tabContent}>{TABS_CONFIG[activeTab]}</main>
+                    
                     <footer style={styles.footer}>
 {/* 
                         <div style={{display: 'flex', alignItems: 'center', gap: '0.5rem'}}><input type="checkbox" id="statusToggle" checked={subjectWorkloadStatus === 'complete'} onChange={(e) => setSubjectWorkloadStatus(e.target.checked ? 'complete' : 'incomplete')} /><label htmlFor="statusToggle" style={{color: '#495057'}}>Mark as Complete</label></div>
@@ -94,14 +125,26 @@ export default function SubjectWorkloadPage() {
                     <div>
                         <button style={styles.button('secondary')}>Save & Exit</button>
                         
-                        {/* === MODIFY THIS BUTTON === */}
-                        <button 
-                            style={{...styles.button('primary'), marginLeft: '1rem', opacity: isNextDisabled ? 0.5 : 1}} 
-                            disabled={isNextDisabled}
-                            onClick={() => navigate('/workload-distribution', { state: { subject } })} // <-- ADD THIS LINE
-                        >
-                            Next: Workload Distribution
-                        </button>
+                            <button
+                                style={{ ...styles.button('primary'), marginLeft: '1rem', opacity: isNextDisabled ? 0.5 : 1 }}
+                                disabled={isNextDisabled}
+                                onClick={() => {
+                                    // Create an updated subject object for the next page
+                                    const subjectForNextPage = {
+                                        ...subject,
+                                        // Use the dynamic value from state
+                                        baseAllocationFromSW: baseAllocationValue,
+                                        perGroupAllocationFromSW: perGroupAllocationValue,
+                                        // This can remain 0 unless you calculate a value for it
+                                        increaseToBaseAllocation: 0,
+                                    };
+
+                                    // Navigate with the updated state
+                                    navigate('/workload-distribution', { state: { subject: subjectForNextPage } });
+                                }}
+                            >
+                    Next: Workload Distribution
+                </button>
 
                     </div>
                     </footer>
