@@ -61,8 +61,32 @@ export default function SubjectWorkloadPage() {
                     <div style={styles.tabsContainer}>{tabNames.map(tabName => (<button key={tabName} style={activeTab === tabName ? styles.tabButtonActive : styles.tabButton} onClick={() => setActiveTab(tabName)}>{tabName}</button>))}</div>
                     <main style={styles.tabContent}>{TABS_CONFIG[activeTab]}</main>
                     <footer style={styles.footer}>
+{/* 
                         <div style={{display: 'flex', alignItems: 'center', gap: '0.5rem'}}><input type="checkbox" id="statusToggle" checked={subjectWorkloadStatus === 'complete'} onChange={(e) => setSubjectWorkloadStatus(e.target.checked ? 'complete' : 'incomplete')} /><label htmlFor="statusToggle" style={{color: '#495057'}}>Mark as Complete</label></div>
                         <div><button style={styles.button('secondary')}>Save & Exit</button><button style={{...styles.button('primary'), marginLeft: '1rem', opacity: isNextDisabled ? 0.5 : 1}} disabled={isNextDisabled}>Next: Workload Distribution</button></div>
+                     */}
+                    <div style={{display: 'flex', alignItems: 'center', gap: '0.5rem'}}>
+                        <input 
+                            type="checkbox" 
+                            id="statusToggle" 
+                            checked={subjectWorkloadStatus === 'complete'} 
+                            onChange={(e) => setSubjectWorkloadStatus(e.target.checked ? 'complete' : 'incomplete')} 
+                        />
+                        <label htmlFor="statusToggle" style={{color: '#495057'}}>Mark as Complete</label>
+                    </div>
+                    <div>
+                        <button style={styles.button('secondary')}>Save & Exit</button>
+                        
+                        {/* === MODIFY THIS BUTTON === */}
+                        <button 
+                            style={{...styles.button('primary'), marginLeft: '1rem', opacity: isNextDisabled ? 0.5 : 1}} 
+                            disabled={isNextDisabled}
+                            onClick={() => navigate('/workload-distribution', { state: { subject } })} // <-- ADD THIS LINE
+                        >
+                            Next: Workload Distribution
+                        </button>
+
+                    </div>
                     </footer>
                 </div>
             </div>
