@@ -128,7 +128,15 @@ export default function WDSummaryTab({ totalSubjectWorkload, baseAllocations = [
                                 <button style={styles.iconButton} title="Edit"><EditIcon /></button>
                                 <button style={styles.iconButton} title="Delete" onClick={() => handleDeleteRow(row.id)}><DeleteIcon /></button>
                             </td>
-                            <td style={styles.tableCell}>{row.staffMember}</td>
+                            <td style={styles.tableCell}>
+                                <input
+                                    type="text"
+                                    value={row.staffMember}
+                                    onChange={(e) => handleInputChange(index, 'staffMember', e.target.value)}
+                                    style={styles.textInputField}
+                                    placeholder="Enter staff name"
+                                />
+                            </td>
                             <td style={{...styles.tableCell, textAlign: 'right'}}>{formatPercent(row.rawTotalAllocation)}</td>
                             <td style={{...styles.tableCell, textAlign: 'right'}}>{formatPercent(row.minCoordinationAllocation)}</td>
                             <td style={{...styles.tableCell, textAlign: 'right'}}>
@@ -176,6 +184,7 @@ const styles = {
     tableCell: { padding: '0.5rem 0.5rem', color: '#343a40', verticalAlign: 'middle', fontSize: '0.9rem' },
     iconButton: { background: 'none', border: 'none', cursor: 'pointer', padding: '0.25rem', color: '#495057', marginRight: '0.5rem' },
     inputField: { width: '90px', padding: '0.5rem', border: '1px solid #ced4da', borderRadius: '4px', textAlign: 'right', fontSize: '0.9rem' },
+    textInputField: { width: '95%', padding: '0.5rem', border: '1px solid #ced4da', borderRadius: '4px', fontSize: '0.9rem' },
     tabFooter: { display: 'flex', justifyContent: 'flex-start', marginTop: '2rem', borderTop: '1px solid #e9ecef', paddingTop: '1.5rem' },
     saveButton: { padding: '0.6rem 1.2rem', fontSize: '1rem', borderRadius: '6px', border: 'none', cursor: 'pointer', fontWeight: '500', backgroundColor: '#007bff', color: 'white' },
     errorBanner: { backgroundColor: '#f8d7da', color: '#721c24', padding: '1rem', borderRadius: '6px', border: '1px solid #f5c6cb', marginBottom: '1.5rem' },

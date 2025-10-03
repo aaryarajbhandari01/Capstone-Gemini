@@ -1,6 +1,7 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import WDBaseAllocationTab from '../component/WDBaseAllocationTab';
+import WDSummaryTab from '../component/WDSummaryTab';
 
 // --- Static UI Configuration ---
 // This defines the tab structure for different delivery formats.
@@ -61,6 +62,39 @@ export default function WorkloadDistributionPage() {
     const location = useLocation();
     const { subject } = location.state || {}; 
     
+    // 2. Add state to manage data flow between tabs
+    const [baseAllocations, setBaseAllocations] = useState([]);
+    const [workloadSummary, setWorkloadSummary] = useState({
+        totalWorkloadAllocationForSubject: '0.0%',
+        unallocatedAvailableWorkload: '0.0%',
+    });
+
+    // 3. Add callback handlers for child components to update state
+    const handleBaseAllocationChange = (allocations) => {
+        setBaseAllocations(allocations);
+    };
+
+    const handleSummaryChange = (summary) => {
+        setWorkloadSummary({
+            totalWorkloadAllocationForSubject: `${(summary.totalWorkloadAllocationsForSubject * 100).toFixed(1)}%`,
+            unallocatedAvailableWorkload: `${(summary.unallocatedAvailableWorkload * 100).toFixed(1)}%`,
+        });
+    };
+
+     const totalSubjectWorkload = useMemo(() => {
+        return (subject?.baseAllocationFromSW || 0) + (subject?.perGroupAllocationFromSW || 0);
+    }, [subject]);
+    
+    // Set the initial 'Unallocated' value when the component loads
+    useEffect(() => {
+        if(subject) {
+            setWorkloadSummary(prev => ({
+                ...prev,
+                unallocatedAvailableWorkload: `${(totalSubjectWorkload * 100).toFixed(1)}%`
+            }));
+        }
+    }, [totalSubjectWorkload, subject]);
+    
 
     const TABS_CONFIG = useMemo(() => {
         if (!subject?.formatOfDelivery) return { tabs: [], defaultTab: null };
@@ -77,27 +111,31 @@ export default function WorkloadDistributionPage() {
     }, [TABS_CONFIG.defaultTab]);
 
 
+    // 4. Update the TABS_CONTENT_MAP to use the new component and pass props
     const TABS_CONTENT_MAP = useMemo(() => {
         if (!subject) return {};
         return {
-            // baseAllocation: <BaseAllocationDistributionTab data={subject.tabData?.baseAllocation} />,
-                    // v-- 2. REPLACE THE OLD COMPONENT WITH THE NEW ONE
-            baseAllocation: <WDBaseAllocationTab subject={subject} />,
-            // ^-- The 'subject' object now contains totalAvailableWorkload
+            baseAllocation: <WDBaseAllocationTab 
+                                subject={subject} 
+                                onAllocationChange={handleBaseAllocationChange} 
+                            />,
             perDeliveryAllocation: <PlaceholderDistributionTab title="Per-delivery Allocation" />,
             perStudentActivityAllocation: <PlaceholderDistributionTab title="Per-student / Per-activity Allocation" />,
-            summary: <PlaceholderDistributionTab title="Summary" />
+            summary: <WDSummaryTab 
+                        totalSubjectWorkload={totalSubjectWorkload}
+                        baseAllocations={baseAllocations}
+                        onSummaryChange={handleSummaryChange}
+                     />
         };
-    }, [subject]);
-    
+    }, [subject, baseAllocations, totalSubjectWorkload]);
     if (!subject) {
         return <div style={styles.container}><h1 style={styles.title}>Error</h1><p>No subject data provided. Please go back and select a subject.</p><button style={styles.button()} onClick={() => navigate('/')}>Back to List</button></div>;
     }
 
-    const workloadSummary = {
-        totalWorkloadAllocationForSubject: subject.workloadDistributionSummary?.totalWorkloadAllocationForSubject || 'N/A',
-        unallocatedAvailableWorkload: subject.workloadDistributionSummary?.unallocatedAvailableWorkload || 'N/A',
-    };
+    // const workloadSummary = {
+    //     totalWorkloadAllocationForSubject: subject.workloadDistributionSummary?.totalWorkloadAllocationForSubject || 'N/A',
+    //     unallocatedAvailableWorkload: subject.workloadDistributionSummary?.unallocatedAvailableWorkload || 'N/A',
+    // };
 
     return (
         <div style={styles.container}>
@@ -112,7 +150,8 @@ export default function WorkloadDistributionPage() {
                 <div style={styles.leftColumn}>
                     <Stepper currentStep={2} />
                 </div>
-                <div style={styles.rightColumn}>
+               <div style={styles.rightColumn}>
+                    {/* 5. Ensure the info panel uses the dynamic state */}
                     <WorkloadDistributionInfoPanel subject={subject} summary={workloadSummary} />
                     
                     <div style={styles.tabsContainer}>
@@ -126,7 +165,6 @@ export default function WorkloadDistributionPage() {
                             </button>
                         ))}
                     </div>
-
                     <main>
                         {TABS_CONTENT_MAP[activeTab]}
                     </main>
