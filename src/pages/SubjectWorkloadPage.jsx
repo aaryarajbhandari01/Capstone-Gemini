@@ -2,6 +2,7 @@ import React, { useState, useMemo } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import SWBaseAllocationTab from '../component/SWBaseAllocationTab';
 import PerGroupAllocationTab from '../component/PerGroupAllocationTab'; 
+import PerDeliveryAllocationTab from '../component/PerDeliveryAllocationTab'; 
 
 // --- Placeholder Tab Content Components ---
 // These components are placeholders for the actual content of each tab.
@@ -14,7 +15,7 @@ const PlaceholderTabContent = ({ title }) => (
 );
 // const BaseAllocationTab = () => <PlaceholderTabContent title="Base Allocation" />;
 
-const PerDeliveryAllocationTab = () => <PlaceholderTabContent title="Per-delivery Allocation" />;
+// const PerDeliveryAllocationTab = () => <PlaceholderTabContent title="Per-delivery Allocation" />;
 const StaffRolesTab = () => <PlaceholderTabContent title="Staff Roles" />;
 const PerStudentAllocationTab = () => <PlaceholderTabContent title="Per-student Allocation" />;
 const ActivityAllocationTab = () => <PlaceholderTabContent title="Activity Allocation" />;
@@ -36,6 +37,8 @@ export default function SubjectWorkloadPage() {
     // State to store the base allocation calculated in the child tab
     const [baseAllocationValue, setBaseAllocationValue] = useState(0);
     const [perGroupAllocationValue, setPerGroupAllocationValue] = useState(0);
+    const [perDeliveryAllocationValue, setPerDeliveryAllocationValue] = useState(0);
+
 
     // State for the summary panel and tab status
     
@@ -45,7 +48,7 @@ export default function SubjectWorkloadPage() {
     // };
     const handleBaseAllocationChange = (value) => setBaseAllocationValue(value);
     const handlePerGroupAllocationChange = (value) => setPerGroupAllocationValue(value);
-
+    const handlePerDeliveryAllocationChange = (value) => setPerDeliveryAllocationValue(value);
 
     const [subjectWorkloadStatus, setSubjectWorkloadStatus] = useState('incomplete');
     const [summaryData, setSummaryData] = useState({
@@ -69,7 +72,8 @@ export default function SubjectWorkloadPage() {
         if (isLectureBased) {
             return {
                 "Base Allocation": <SWBaseAllocationTab subjectCode={subject.subjectCode} term={subject.term}   onBaseAllocationChange={handleBaseAllocationChange} />,
-                "Per-delivery Allocation": <PerDeliveryAllocationTab />,
+                "Per-delivery Allocation": <PerDeliveryAllocationTab term={subject.term} onAllocationChange={handlePerDeliveryAllocationChange} />,
+                "Staff Roles": <StaffRolesTab />,
                 "Staff Roles": <StaffRolesTab />,
                 "Per-student Allocation": <PerStudentAllocationTab />,
                 "Activity Allocation": <ActivityAllocationTab />
