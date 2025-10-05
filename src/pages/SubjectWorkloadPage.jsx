@@ -3,6 +3,7 @@ import { useLocation, useNavigate } from 'react-router-dom';
 import SWBaseAllocationTab from '../component/SWBaseAllocationTab';
 import PerGroupAllocationTab from '../component/PerGroupAllocationTab'; 
 import PerDeliveryAllocationTab from '../component/PerDeliveryAllocationTab'; 
+import StaffRolesTab from '../component/StaffRolesTab';
 
 // --- Placeholder Tab Content Components ---
 // These components are placeholders for the actual content of each tab.
@@ -16,7 +17,7 @@ const PlaceholderTabContent = ({ title }) => (
 // const BaseAllocationTab = () => <PlaceholderTabContent title="Base Allocation" />;
 
 // const PerDeliveryAllocationTab = () => <PlaceholderTabContent title="Per-delivery Allocation" />;
-const StaffRolesTab = () => <PlaceholderTabContent title="Staff Roles" />;
+//const StaffRolesTab = () => <PlaceholderTabContent title="Staff Roles" />;
 const PerStudentAllocationTab = () => <PlaceholderTabContent title="Per-student Allocation" />;
 const ActivityAllocationTab = () => <PlaceholderTabContent title="Activity Allocation" />;
 // const PerGroupAllocationTab = () => <PlaceholderTabContent title="Per-group Allocation" />;
@@ -73,8 +74,8 @@ export default function SubjectWorkloadPage() {
             return {
                 "Base Allocation": <SWBaseAllocationTab subjectCode={subject.subjectCode} term={subject.term}   onBaseAllocationChange={handleBaseAllocationChange} />,
                 "Per-delivery Allocation": <PerDeliveryAllocationTab term={subject.term} onAllocationChange={handlePerDeliveryAllocationChange} />,
-                "Staff Roles": <StaffRolesTab />,
-                "Staff Roles": <StaffRolesTab />,
+                // "Staff Roles": <StaffRolesTab />,
+                "Staff Roles": <StaffRolesTab/>,
                 "Per-student Allocation": <PerStudentAllocationTab />,
                 "Activity Allocation": <ActivityAllocationTab />
             };
