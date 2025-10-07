@@ -1,6 +1,8 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useContext } from 'react';
+import { StaffRolesContext } from '../StaffRolesContext';
 
-// --- Icon Helper Components ---
+// --- Icon & UI Helper Components (EditIcon, DeleteIcon, Toast, Modal) remain the same ---
+// (Your existing Icon and UI Helper Components go here)
 const EditIcon = () => (
     <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
         <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
@@ -16,8 +18,6 @@ const DeleteIcon = () => (
         <line x1="14" y1="11" x2="14" y2="17" />
     </svg>
 );
-
-// --- UI Helper Components ---
 
 const Toast = ({ message, type, onHide }) => {
     useEffect(() => {
@@ -112,19 +112,28 @@ const Modal = ({ isOpen, onClose, children }) => {
     );
 };
 
-
 // --- Main Staff Roles Tab Component ---
+// ✨ 1. Accept onRolesChange from props
 export default function StaffRolesTab() {
-    const [roles, setRoles] = useState([
-        { id: 1, name: 'Assistant subject coordinator' },
-        { id: 2, name: 'Tutor' },
-        { id: 3, name: 'Exam marker' },
-    ]);
+    // const [roles, setRoles] = useState([
+    //     { id: 1, name: 'Assistant subject coordinator' },
+    //     { id: 2, name: 'Tutor' },
+    //     { id: 3, name: 'Exam marker' },
+    // ]);
+    const { definedRoles: roles, setDefinedRoles: setRoles } = useContext(StaffRolesContext);
+
     const [editingId, setEditingId] = useState(null);
     const [tempName, setTempName] = useState('');
     const [toast, setToast] = useState({ show: false, message: '', type: '' });
     const [isInfoModalOpen, setInfoModalOpen] = useState(false);
-    const [roleToDelete, setRoleToDelete] = useState(null); // State for delete confirmation
+    const [roleToDelete, setRoleToDelete] = useState(null);
+
+    // ✨ 2. Use useEffect to notify the parent component whenever roles change
+    // useEffect(() => {
+    //     if (onRolesChange) {
+    //         onRolesChange(roles);
+    //     }
+    // }, [roles, onRolesChange]);
 
     const showToast = (message, type = 'error') => {
         setToast({ show: true, message, type });
@@ -148,18 +157,15 @@ export default function StaffRolesTab() {
     
     const handleSaveRole = (id) => {
         const trimmedName = tempName.trim();
-        // Validation 1: Check for empty role name
         if (!trimmedName) {
             showToast('Role name cannot be blank.');
             return;
         }
-        // Validation 2: Check for numbers or special characters
         const validCharRegex = /^[a-zA-Z\s]*$/;
         if (!validCharRegex.test(trimmedName)) {
             showToast('Role name can only contain letters and spaces.');
             return;
         }
-        // Validation 3: Check for duplicate role names
         const isDuplicate = roles.some(role => role.id !== id && role.name.toLowerCase() === trimmedName.toLowerCase());
         if (isDuplicate) {
             showToast('Duplicate role names are not allowed.');
@@ -171,7 +177,6 @@ export default function StaffRolesTab() {
     };
     
     const handleCancelEdit = (role) => {
-        // If the role being cancelled was a new, unsaved role, remove it from the list
         if (!role.name) {
             setRoles(roles.filter(r => r.id !== role.id));
         }
@@ -180,7 +185,7 @@ export default function StaffRolesTab() {
 
     const handleDelete = (id) => {
         setRoles(roles.filter(role => role.id !== id));
-        setRoleToDelete(null); // Close modal
+        setRoleToDelete(null);
         showToast('Role deleted successfully.', 'success');
     };
 

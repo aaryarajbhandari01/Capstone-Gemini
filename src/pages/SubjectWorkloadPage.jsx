@@ -1,10 +1,11 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import SWBaseAllocationTab from '../component/SWBaseAllocationTab';
 import PerGroupAllocationTab from '../component/PerGroupAllocationTab'; 
 import PerDeliveryAllocationTab from '../component/PerDeliveryAllocationTab'; 
 import StaffRolesTab from '../component/StaffRolesTab';
-
+import PerStudentAllocationTab from '../component/PerStudentAllocationTab';
+import { StaffRolesProvider } from '../StaffRolesContext';
 // --- Placeholder Tab Content Components ---
 // These components are placeholders for the actual content of each tab.
 
@@ -17,8 +18,8 @@ const PlaceholderTabContent = ({ title }) => (
 // const BaseAllocationTab = () => <PlaceholderTabContent title="Base Allocation" />;
 
 // const PerDeliveryAllocationTab = () => <PlaceholderTabContent title="Per-delivery Allocation" />;
-//const StaffRolesTab = () => <PlaceholderTabContent title="Staff Roles" />;
-const PerStudentAllocationTab = () => <PlaceholderTabContent title="Per-student Allocation" />;
+// const StaffRolesTab = () => <PlaceholderTabContent title="Staff Roles" />;
+// const PerStudentAllocationTab = () => <PlaceholderTabContent title="Per-student Allocation" />;
 const ActivityAllocationTab = () => <PlaceholderTabContent title="Activity Allocation" />;
 // const PerGroupAllocationTab = () => <PlaceholderTabContent title="Per-group Allocation" />;
 
@@ -39,7 +40,8 @@ export default function SubjectWorkloadPage() {
     const [baseAllocationValue, setBaseAllocationValue] = useState(0);
     const [perGroupAllocationValue, setPerGroupAllocationValue] = useState(0);
     const [perDeliveryAllocationValue, setPerDeliveryAllocationValue] = useState(0);
-
+    //const [staffRoles, setStaffRoles] = useState([]);
+    const [perStudentAllocationValue, setPerStudentAllocationValue] = useState(0);
 
     // State for the summary panel and tab status
     
@@ -50,6 +52,8 @@ export default function SubjectWorkloadPage() {
     const handleBaseAllocationChange = (value) => setBaseAllocationValue(value);
     const handlePerGroupAllocationChange = (value) => setPerGroupAllocationValue(value);
     const handlePerDeliveryAllocationChange = (value) => setPerDeliveryAllocationValue(value);
+    const handlePerStudentAllocationChange = (value) => setPerStudentAllocationValue(value); 
+   // const handleRolesChange = (updatedRoles) => {setStaffRoles(updatedRoles);};
 
     const [subjectWorkloadStatus, setSubjectWorkloadStatus] = useState('incomplete');
     const [summaryData, setSummaryData] = useState({
@@ -57,6 +61,22 @@ export default function SubjectWorkloadPage() {
         total_eftsl_for_subject: "12.5",
         total_administrative_loadings: "0.0%"
     });
+
+    useEffect(() => {
+        const totalWorkload = (baseAllocationValue || 0) + 
+                              (perGroupAllocationValue || 0) + 
+                              (perDeliveryAllocationValue || 0) +
+                              (perStudentAllocationValue || 0);
+
+        const workloadPercentage = (totalWorkload * 100).toFixed(1);
+        
+        setSummaryData(prevData => ({
+            ...prevData,
+            total_subject_workload: `${workloadPercentage}%`
+        }));
+    }, [baseAllocationValue, perGroupAllocationValue, perDeliveryAllocationValue, perStudentAllocationValue]);
+
+
 
     // Callback function to update the summary
     const handleAllocationChange = (allocationValue) => {
@@ -75,8 +95,8 @@ export default function SubjectWorkloadPage() {
                 "Base Allocation": <SWBaseAllocationTab subjectCode={subject.subjectCode} term={subject.term}   onBaseAllocationChange={handleBaseAllocationChange} />,
                 "Per-delivery Allocation": <PerDeliveryAllocationTab term={subject.term} onAllocationChange={handlePerDeliveryAllocationChange} />,
                 // "Staff Roles": <StaffRolesTab />,
-                "Staff Roles": <StaffRolesTab/>,
-                "Per-student Allocation": <PerStudentAllocationTab />,
+                "Staff Roles": <StaffRolesTab />,
+                "Per-student Allocation": <PerStudentAllocationTab onAllocationChange={handlePerStudentAllocationChange} />,
                 "Activity Allocation": <ActivityAllocationTab />
             };
         } else {
@@ -100,6 +120,7 @@ export default function SubjectWorkloadPage() {
     const isNextDisabled = subjectWorkloadStatus === 'incomplete';
     
     return (
+        <StaffRolesProvider>
         <div style={styles.container}>
             <header style={styles.header}><button style={styles.backButton} onClick={() => navigate('/')}><BackIcon /> Back to Subject List</button><h1 style={styles.title}>Subject Workload - {subject.formatOfDelivery}</h1></header>
             
@@ -142,6 +163,7 @@ export default function SubjectWorkloadPage() {
                                         perGroupAllocationFromSW: perGroupAllocationValue,
                                         // This can remain 0 unless you calculate a value for it
                                         increaseToBaseAllocation: 0,
+                                        // staffRoles: staffRoles 
                                     };
 
                                     // Navigate with the updated state
@@ -156,6 +178,7 @@ export default function SubjectWorkloadPage() {
                 </div>
             </div>
         </div>
+          </StaffRolesProvider>
     );
 }
 
@@ -216,6 +239,7 @@ function SubjectDetailsPanel({ subject, summary }) {
                 ))}
             </div>
         </div>
+      
     );
 }
 
