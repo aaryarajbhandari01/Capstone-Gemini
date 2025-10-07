@@ -128,9 +128,9 @@ const PercentageInput = ({ value, onChange, style }) => {
 };
 
 // --- Main Component ---
-export default function PerStudentAllocationTab({ onAllocationChange }) {
+export default function PerStudentAllocationTab({ onAllocationChange,  numberOfStudents, onStudentsChange  }) {
     const { definedRoles } = useContext(StaffRolesContext);
-    const [numberOfStudents, setNumberOfStudents] = useState(100);
+    //const [numberOfStudents, setNumberOfStudents] = useState(100);
     const [adminLoading, setAdminLoading] = useState(0.0);
     const [details, setDetails] = useState('');
     const [allocations, setAllocations] = useState([
@@ -213,7 +213,7 @@ export default function PerStudentAllocationTab({ onAllocationChange }) {
             </div>
             <div style={styles.inputGroup}>
                 <label style={styles.label} htmlFor="numStudents">Number of students</label>
-                <input style={{...styles.input, ...styles.fullWidthInput}} id="numStudents" type="number" value={numberOfStudents} onChange={(e) => setNumberOfStudents(parseInt(e.target.value, 10) || 0)} />
+                <input style={{...styles.input, ...styles.fullWidthInput}} id="numStudents" type="number" value={numberOfStudents} onChange={(e) => onStudentsChange(parseInt(e.target.value, 10) || 0)} />
             </div>
             <div style={styles.inputGroup}>
                 <label style={styles.label} htmlFor="adminLoading">

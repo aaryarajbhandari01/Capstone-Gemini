@@ -6,6 +6,7 @@ import PerDeliveryAllocationTab from '../component/PerDeliveryAllocationTab';
 import StaffRolesTab from '../component/StaffRolesTab';
 import PerStudentAllocationTab from '../component/PerStudentAllocationTab';
 import { StaffRolesProvider } from '../StaffRolesContext';
+import ActivityAllocationTab from '../component/ActivityAllocationTab';
 // --- Placeholder Tab Content Components ---
 // These components are placeholders for the actual content of each tab.
 
@@ -20,7 +21,7 @@ const PlaceholderTabContent = ({ title }) => (
 // const PerDeliveryAllocationTab = () => <PlaceholderTabContent title="Per-delivery Allocation" />;
 // const StaffRolesTab = () => <PlaceholderTabContent title="Staff Roles" />;
 // const PerStudentAllocationTab = () => <PlaceholderTabContent title="Per-student Allocation" />;
-const ActivityAllocationTab = () => <PlaceholderTabContent title="Activity Allocation" />;
+// const ActivityAllocationTab = () => <PlaceholderTabContent title="Activity Allocation" />;
 // const PerGroupAllocationTab = () => <PlaceholderTabContent title="Per-group Allocation" />;
 
 // --- Icon and Helper Components ---
@@ -42,6 +43,8 @@ export default function SubjectWorkloadPage() {
     const [perDeliveryAllocationValue, setPerDeliveryAllocationValue] = useState(0);
     //const [staffRoles, setStaffRoles] = useState([]);
     const [perStudentAllocationValue, setPerStudentAllocationValue] = useState(0);
+    const [activityAllocationValue, setActivityAllocationValue] = useState(0);
+    const [numberOfStudents, setNumberOfStudents] = useState(100);
 
     // State for the summary panel and tab status
     
@@ -54,6 +57,8 @@ export default function SubjectWorkloadPage() {
     const handlePerDeliveryAllocationChange = (value) => setPerDeliveryAllocationValue(value);
     const handlePerStudentAllocationChange = (value) => setPerStudentAllocationValue(value); 
    // const handleRolesChange = (updatedRoles) => {setStaffRoles(updatedRoles);};
+    const handleActivityAllocationChange = (value) => setActivityAllocationValue(value); // NEW: Handler for Activity Allocation
+
 
     const [subjectWorkloadStatus, setSubjectWorkloadStatus] = useState('incomplete');
     const [summaryData, setSummaryData] = useState({
@@ -66,7 +71,8 @@ export default function SubjectWorkloadPage() {
         const totalWorkload = (baseAllocationValue || 0) + 
                               (perGroupAllocationValue || 0) + 
                               (perDeliveryAllocationValue || 0) +
-                              (perStudentAllocationValue || 0);
+                              (perStudentAllocationValue || 0) +
+                              (activityAllocationValue || 0);
 
         const workloadPercentage = (totalWorkload * 100).toFixed(1);
         
@@ -74,7 +80,7 @@ export default function SubjectWorkloadPage() {
             ...prevData,
             total_subject_workload: `${workloadPercentage}%`
         }));
-    }, [baseAllocationValue, perGroupAllocationValue, perDeliveryAllocationValue, perStudentAllocationValue]);
+    }, [baseAllocationValue, perGroupAllocationValue, perDeliveryAllocationValue, perStudentAllocationValue, activityAllocationValue]);
 
 
 
@@ -96,16 +102,24 @@ export default function SubjectWorkloadPage() {
                 "Per-delivery Allocation": <PerDeliveryAllocationTab term={subject.term} onAllocationChange={handlePerDeliveryAllocationChange} />,
                 // "Staff Roles": <StaffRolesTab />,
                 "Staff Roles": <StaffRolesTab />,
-                "Per-student Allocation": <PerStudentAllocationTab onAllocationChange={handlePerStudentAllocationChange} />,
-                "Activity Allocation": <ActivityAllocationTab />
+                "Per-student Allocation": <PerStudentAllocationTab 
+                term={subject.term} 
+                    onAllocationChange={handlePerStudentAllocationChange} 
+                    onStudentsChange={setNumberOfStudents} 
+                    numberOfStudents={numberOfStudents}
+                    />,
+                "Activity Allocation": <ActivityAllocationTab 
+                    term={subject.term} 
+                    onAllocationChange={handleActivityAllocationChange}
+                    numberOfStudents={numberOfStudents} />
             };
         } else {
             return {
                 "Base Allocation": <SWBaseAllocationTab subjectCode={subject.subjectCode} term={subject.term} onBaseAllocationChange={handleBaseAllocationChange} />,
-                "Per-group Allocation": <PerGroupAllocationTab onPerGroupAllocationChange={handlePerGroupAllocationChange} onAllocationChange={handleAllocationChange}/>
+                "Per-group Allocation": <PerGroupAllocationTab onPerGroupAllocationChange={handlePerGroupAllocationChange} onAllocationChange={handleAllocationChange} numberOfStudents={numberOfStudents}/>
             };
         }
-    }, [subject]);
+    }, [subject,numberOfStudents]);
 
 
     const tabNames = Object.keys(TABS_CONFIG);
@@ -164,6 +178,7 @@ export default function SubjectWorkloadPage() {
                                         // This can remain 0 unless you calculate a value for it
                                         increaseToBaseAllocation: 0,
                                         // staffRoles: staffRoles 
+                                        activityAllocationFromSW: activityAllocationValue,
                                     };
 
                                     // Navigate with the updated state
