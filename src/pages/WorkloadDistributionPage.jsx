@@ -2,6 +2,7 @@ import React, { useState, useMemo, useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import WDBaseAllocationTab from '../component/WDBaseAllocationTab';
 import WDSummaryTab from '../component/WDSummaryTab';
+import WDPerDeliveryAllocationTab from '../component/WDPerDeliveryAllocationTab';
 
 // --- Static UI Configuration ---
 // This defines the tab structure for different delivery formats.
@@ -119,7 +120,7 @@ export default function WorkloadDistributionPage() {
                                 subject={subject} 
                                 onAllocationChange={handleBaseAllocationChange} 
                             />,
-            perDeliveryAllocation: <PlaceholderDistributionTab title="Per-delivery Allocation" />,
+            perDeliveryAllocation: <WDPerDeliveryAllocationTab subject={subject}/>,
             perStudentActivityAllocation: <PlaceholderDistributionTab title="Per-student / Per-activity Allocation" />,
             summary: <WDSummaryTab 
                         totalSubjectWorkload={totalSubjectWorkload}

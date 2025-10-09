@@ -2,10 +2,16 @@ import { BrowserRouter as Router, Routes, Route, BrowserRouter } from "react-rou
 import SubjectManagementPage from "./pages/SubjectManagementPage";
 import SubjectWorkloadPage from "./pages/SubjectWorkloadPage";
 import WorkloadDistributionPage from "./pages/WorkloadDistributionPage";
+import { WorkloadProvider } from "./WorkloadContext";
 
 export default function App() {
   return (
-    <BrowserRouter>
+ <Router>
+
+
+    
+    {/* <BrowserRouter> */}
+    <WorkloadProvider>
       <Routes>
         {/* The root path '/' will render the subject management page. */}
         <Route path="/" element={<SubjectManagementPage/>} />
@@ -16,6 +22,8 @@ export default function App() {
         {/* ADD THIS NEW ROUTE */}
         <Route path="/workload-distribution" element={<WorkloadDistributionPage />} />
       </Routes>
-    </BrowserRouter>
+      </WorkloadProvider>
+     {/* </BrowserRouter>  */}
+     </Router>
   );
 }

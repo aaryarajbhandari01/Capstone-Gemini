@@ -7,6 +7,7 @@ import StaffRolesTab from '../component/StaffRolesTab';
 import PerStudentAllocationTab from '../component/PerStudentAllocationTab';
 import { StaffRolesProvider } from '../StaffRolesContext';
 import ActivityAllocationTab from '../component/ActivityAllocationTab';
+import { useWorkload } from '../WorkloadContext';
 // --- Placeholder Tab Content Components ---
 // These components are placeholders for the actual content of each tab.
 
@@ -35,8 +36,14 @@ const BackIcon = () => (
 export default function SubjectWorkloadPage() {
     const navigate = useNavigate();
     const location = useLocation();
-    const { subject } = location.state || {};
-    
+    //const { subject } = location.state || {};
+        const { subject: initialSubject } = location.state || {};
+     // --- 2. Get SHARED state from the context ---
+    const { 
+        deliveries, 
+        firstOfferingOfYear,
+    } = useWorkload();
+
     // State to store the base allocation calculated in the child tab
     const [baseAllocationValue, setBaseAllocationValue] = useState(0);
     const [perGroupAllocationValue, setPerGroupAllocationValue] = useState(0);
@@ -45,6 +52,12 @@ export default function SubjectWorkloadPage() {
     const [perStudentAllocationValue, setPerStudentAllocationValue] = useState(0);
     const [activityAllocationValue, setActivityAllocationValue] = useState(0);
     const [numberOfStudents, setNumberOfStudents] = useState(100);
+    const [subjectWorkloadStatus, setSubjectWorkloadStatus] = useState('incomplete');
+    const [summaryData, setSummaryData] = useState({
+        total_subject_workload: initialSubject?.totalSubjectWorkload || '0.0%',
+        total_eftsl_for_subject: "12.5",
+        total_administrative_loadings: "0.0%"
+    });
 
     // State for the summary panel and tab status
     
@@ -60,12 +73,7 @@ export default function SubjectWorkloadPage() {
     const handleActivityAllocationChange = (value) => setActivityAllocationValue(value); // NEW: Handler for Activity Allocation
 
 
-    const [subjectWorkloadStatus, setSubjectWorkloadStatus] = useState('incomplete');
-    const [summaryData, setSummaryData] = useState({
-        total_subject_workload: subject?.totalSubjectWorkload || '0.0%',
-        total_eftsl_for_subject: "12.5",
-        total_administrative_loadings: "0.0%"
-    });
+    
 
     useEffect(() => {
         const totalWorkload = (baseAllocationValue || 0) + 
@@ -83,6 +91,31 @@ export default function SubjectWorkloadPage() {
     }, [baseAllocationValue, perGroupAllocationValue, perDeliveryAllocationValue, perStudentAllocationValue, activityAllocationValue]);
 
 
+const handleNext = () => {
+        // Create the complete object for the next page
+        const subjectForNextPage = {
+            ...initialSubject,
+            
+            // 1. Values from this page's LOCAL state
+            baseAllocationFromSW: baseAllocationValue,
+            perGroupAllocationFromSW: perGroupAllocationValue,
+            activityAllocationFromSW: activityAllocationValue,
+            
+            // 2. Values from the SHARED context
+            firstOfferingOfYear: firstOfferingOfYear,
+            perDeliveryAllocationData: deliveries, // This is the full, enriched array
+            
+            // 3. Static or other required values
+            increaseToBaseAllocation: 0,
+            calculationInputs: {
+                isManagedBySCDMS: 'Yes',
+                totalStudentHours: 150, // This should ideally come from state if it's dynamic
+            }
+        };
+
+        // Navigate with the complete state object
+        navigate('/workload-distribution', { state: { subject: subjectForNextPage } });
+    };
 
     // Callback function to update the summary
     const handleAllocationChange = (allocationValue) => {
@@ -92,42 +125,72 @@ export default function SubjectWorkloadPage() {
             total_subject_workload: `${workloadPercentage}%`
         }));
     };
+    // const TABS_CONFIG = useMemo(() => {
+    //     if (!subject) return {};
+    //     const isLectureBased = subject.formatOfDelivery.toLowerCase().includes('lecture');
+        
+    //     if (isLectureBased) {
+    //         return {
+    //             "Base Allocation": <SWBaseAllocationTab subjectCode={subject.subjectCode} term={subject.term}   onBaseAllocationChange={handleBaseAllocationChange} />,
+    //             "Per-delivery Allocation": <PerDeliveryAllocationTab term={subject.term} onAllocationChange={handlePerDeliveryAllocationChange} />,
+    //             // "Staff Roles": <StaffRolesTab />,
+    //             "Staff Roles": <StaffRolesTab />,
+    //             "Per-student Allocation": <PerStudentAllocationTab 
+    //             term={subject.term} 
+    //                 onAllocationChange={handlePerStudentAllocationChange} 
+    //                 onStudentsChange={setNumberOfStudents} 
+    //                 numberOfStudents={numberOfStudents}
+    //                 />,
+    //             "Activity Allocation": <ActivityAllocationTab 
+    //                 term={subject.term} 
+    //                 onAllocationChange={handleActivityAllocationChange}
+    //                 numberOfStudents={numberOfStudents} />
+    //         };
+    //     } else {
+    //         return {
+    //             "Base Allocation": <SWBaseAllocationTab subjectCode={subject.subjectCode} term={subject.term} onBaseAllocationChange={handleBaseAllocationChange} />,
+    //             "Per-group Allocation": <PerGroupAllocationTab onPerGroupAllocationChange={handlePerGroupAllocationChange} onAllocationChange={handleAllocationChange} numberOfStudents={numberOfStudents}/>
+    //         };
+    //     }
+    // }, [subject,numberOfStudents]);
+
     const TABS_CONFIG = useMemo(() => {
-        if (!subject) return {};
-        const isLectureBased = subject.formatOfDelivery.toLowerCase().includes('lecture');
+        if (!initialSubject) return {};
+        const isLectureBased = initialSubject.formatOfDelivery.toLowerCase().includes('lecture');
         
         if (isLectureBased) {
             return {
-                "Base Allocation": <SWBaseAllocationTab subjectCode={subject.subjectCode} term={subject.term}   onBaseAllocationChange={handleBaseAllocationChange} />,
-                "Per-delivery Allocation": <PerDeliveryAllocationTab term={subject.term} onAllocationChange={handlePerDeliveryAllocationChange} />,
-                // "Staff Roles": <StaffRolesTab />,
+                "Base Allocation": <SWBaseAllocationTab subjectCode={initialSubject.subjectCode} term={initialSubject.term} onBaseAllocationChange={handleBaseAllocationChange} />,
+                "Per-delivery Allocation": <PerDeliveryAllocationTab term={initialSubject.term} onAllocationChange={handlePerDeliveryAllocationChange} />,
                 "Staff Roles": <StaffRolesTab />,
                 "Per-student Allocation": <PerStudentAllocationTab 
-                term={subject.term} 
+                    term={initialSubject.term} 
                     onAllocationChange={handlePerStudentAllocationChange} 
                     onStudentsChange={setNumberOfStudents} 
                     numberOfStudents={numberOfStudents}
-                    />,
+                />,
                 "Activity Allocation": <ActivityAllocationTab 
-                    term={subject.term} 
+                    term={initialSubject.term} 
                     onAllocationChange={handleActivityAllocationChange}
-                    numberOfStudents={numberOfStudents} />
+                    numberOfStudents={numberOfStudents} 
+                />
             };
         } else {
             return {
-                "Base Allocation": <SWBaseAllocationTab subjectCode={subject.subjectCode} term={subject.term} onBaseAllocationChange={handleBaseAllocationChange} />,
+                "Base Allocation": <SWBaseAllocationTab subjectCode={initialSubject.subjectCode} term={initialSubject.term} onBaseAllocationChange={handleBaseAllocationChange} />,
                 "Per-group Allocation": <PerGroupAllocationTab onPerGroupAllocationChange={handlePerGroupAllocationChange} onAllocationChange={handleAllocationChange} numberOfStudents={numberOfStudents}/>
             };
         }
-    }, [subject,numberOfStudents]);
+    }, [initialSubject, numberOfStudents]);
 
 
     const tabNames = Object.keys(TABS_CONFIG);
     const [activeTab, setActiveTab] = useState(tabNames.length > 0 ? tabNames[0] : null);
 
-    const subjectSummaryData = { total_subject_workload: subject?.totalSubjectWorkload || 'N/A', total_eftsl_for_subject: "12.5", total_administrative_loadings: "0.0%" };
+    const subjectSummaryData = { total_subject_workload: initialSubject?.totalSubjectWorkload || 'N/A', total_eftsl_for_subject: "12.5", total_administrative_loadings: "0.0%" };
 
-    if (!subject) {
+    // if (!subject) {
+     if (!initialSubject) {
         return <div style={styles.container}><h1 style={styles.title}>Error</h1><p>No subject data provided. Please go back to the subject list and select a subject.</p><button style={styles.button()} onClick={() => navigate('/')}>Back to List</button></div>;
     }
     
@@ -136,7 +199,7 @@ export default function SubjectWorkloadPage() {
     return (
         <StaffRolesProvider>
         <div style={styles.container}>
-            <header style={styles.header}><button style={styles.backButton} onClick={() => navigate('/')}><BackIcon /> Back to Subject List</button><h1 style={styles.title}>Subject Workload - {subject.formatOfDelivery}</h1></header>
+            <header style={styles.header}><button style={styles.backButton} onClick={() => navigate('/')}><BackIcon /> Back to Subject List</button><h1 style={styles.title}>Subject Workload - {initialSubject.formatOfDelivery}</h1></header>
             
             <div style={styles.mainLayout}>
                 <div style={styles.leftColumn}>
@@ -144,7 +207,7 @@ export default function SubjectWorkloadPage() {
                 </div>
                 <div style={styles.rightColumn}>
                      {/* Pass the dynamic summaryData state to the panel */}
-                    <SubjectDetailsPanel subject={subject} summary={summaryData} />
+                    <SubjectDetailsPanel subject={initialSubject} summary={summaryData} />
                 <div style={styles.tabsContainer}>{tabNames.map(tabName => (<button key={tabName} style={activeTab === tabName ? styles.tabButtonActive : styles.tabButton} onClick={() => setActiveTab(tabName)}>{tabName}</button>))}</div>
                     <main style={styles.tabContent}>{TABS_CONFIG[activeTab]}</main>
                     
@@ -168,22 +231,27 @@ export default function SubjectWorkloadPage() {
                             <button
                                 style={{ ...styles.button('primary'), marginLeft: '1rem', opacity: isNextDisabled ? 0.5 : 1 }}
                                 disabled={isNextDisabled}
-                                onClick={() => {
-                                    // Create an updated subject object for the next page
-                                    const subjectForNextPage = {
-                                        ...subject,
-                                        // Use the dynamic value from state
-                                        baseAllocationFromSW: baseAllocationValue,
-                                        perGroupAllocationFromSW: perGroupAllocationValue,
-                                        // This can remain 0 unless you calculate a value for it
-                                        increaseToBaseAllocation: 0,
-                                        // staffRoles: staffRoles 
-                                        activityAllocationFromSW: activityAllocationValue,
-                                    };
+                                onClick={handleNext}
+            //                     onClick={() => {
+            //                         // Create an updated subject object for the next page
+            //                         const subjectForNextPage = {
+            //                             ...subject,
+            //                             // Use the dynamic value from state
+            //                             baseAllocationFromSW: baseAllocationValue,
+            //                             perGroupAllocationFromSW: perGroupAllocationValue,
+            //                             // This can remain 0 unless you calculate a value for it
+            //                             increaseToBaseAllocation: 0,
+            //                             // staffRoles: staffRoles 
+            //                             activityAllocationFromSW: activityAllocationValue,
+            //                              // Values from SHARED context
+            // firstOfferingOfYear: firstOfferingOfYear,
+            // perDeliveryAllocationData: deliveries, // The full, enriched deliveries array
+         
+            //                         };
 
-                                    // Navigate with the updated state
-                                    navigate('/workload-distribution', { state: { subject: subjectForNextPage } });
-                                }}
+            //                         // Navigate with the updated state
+            //                         navigate('/workload-distribution', { state: { subject: subjectForNextPage } });
+            //                     }}
                             >
                     Next: Workload Distribution
                 </button>
