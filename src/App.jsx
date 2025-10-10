@@ -3,6 +3,7 @@ import SubjectManagementPage from "./pages/SubjectManagementPage";
 import SubjectWorkloadPage from "./pages/SubjectWorkloadPage";
 import WorkloadDistributionPage from "./pages/WorkloadDistributionPage";
 import { WorkloadProvider } from "./WorkloadContext";
+import { StaffRolesProvider } from "./StaffRolesContext";
 
 export default function App() {
   return (
@@ -12,6 +13,7 @@ export default function App() {
     
     {/* <BrowserRouter> */}
     <WorkloadProvider>
+       <StaffRolesProvider>
       <Routes>
         {/* The root path '/' will render the subject management page. */}
         <Route path="/" element={<SubjectManagementPage/>} />
@@ -22,6 +24,7 @@ export default function App() {
         {/* ADD THIS NEW ROUTE */}
         <Route path="/workload-distribution" element={<WorkloadDistributionPage />} />
       </Routes>
+      </StaffRolesProvider>
       </WorkloadProvider>
      {/* </BrowserRouter>  */}
      </Router>

@@ -3,6 +3,8 @@ import { useLocation, useNavigate } from 'react-router-dom';
 import WDBaseAllocationTab from '../component/WDBaseAllocationTab';
 import WDSummaryTab from '../component/WDSummaryTab';
 import WDPerDeliveryAllocationTab from '../component/WDPerDeliveryAllocationTab';
+import WDPerStudentPerActivityAllocationTab from '../component/WDPerStudentPerActivityAllocationTab';
+import { StaffRolesProvider } from '../StaffRolesContext';
 
 // --- Static UI Configuration ---
 // This defines the tab structure for different delivery formats.
@@ -115,13 +117,20 @@ export default function WorkloadDistributionPage() {
     // 4. Update the TABS_CONTENT_MAP to use the new component and pass props
     const TABS_CONTENT_MAP = useMemo(() => {
         if (!subject) return {};
+
+        // Extract validation data from the subject object passed via navigation
+        const validationData = subject.validationData || { totalStudents: 0, activityGroups: [] };
+
         return {
             baseAllocation: <WDBaseAllocationTab 
                                 subject={subject} 
                                 onAllocationChange={handleBaseAllocationChange} 
                             />,
             perDeliveryAllocation: <WDPerDeliveryAllocationTab subject={subject}/>,
-            perStudentActivityAllocation: <PlaceholderDistributionTab title="Per-student / Per-activity Allocation" />,
+            perStudentActivityAllocation: <WDPerStudentPerActivityAllocationTab 
+                                                subject={subject} 
+                                               sourceOfTruthData={validationData}
+                                                sourceData={subject.sourceData}/>,
             summary: <WDSummaryTab 
                         totalSubjectWorkload={totalSubjectWorkload}
                         baseAllocations={baseAllocations}
@@ -139,6 +148,8 @@ export default function WorkloadDistributionPage() {
     // };
 
     return (
+        <StaffRolesProvider>
+        
         <div style={styles.container}>
             <header style={styles.header}>
                 <button style={styles.backButton} onClick={() => navigate(-1)}>
@@ -172,6 +183,7 @@ export default function WorkloadDistributionPage() {
                 </div>
             </div>
         </div>
+        </StaffRolesProvider>
     );
 }
 

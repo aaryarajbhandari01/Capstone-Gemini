@@ -14,6 +14,40 @@ const DeleteIcon = () => (
     <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg>
 );
 
+// ✅ ADDED: A simple tooltip component for the info icon
+const Tooltip = ({ children, text }) => {
+    const [visible, setVisible] = useState(false);
+    return (
+        <div 
+            style={{ position: 'relative', display: 'inline-flex', alignItems: 'center' }}
+            onMouseEnter={() => setVisible(true)}
+            onMouseLeave={() => setVisible(false)}
+        >
+            {children}
+            {visible && (
+                <div style={{
+                    position: 'absolute',
+                    bottom: '125%',
+                    left: '50%',
+                    transform: 'translateX(-50%)',
+                    backgroundColor: '#343a40',
+                    color: '#fff',
+                    padding: '10px 15px',
+                    borderRadius: '6px',
+                    zIndex: 100,
+                    width: '450px', // Increased width for the longer text
+                    fontSize: '0.9rem',
+                    lineHeight: '1.5',
+                    boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
+                    textAlign: 'left',
+                }}>
+                    {text}
+                </div>
+            )}
+        </div>
+    );
+};
+
 // --- Main Summary Tab Component ---
 export default function WDSummaryTab({ totalSubjectWorkload, baseAllocations = [], onSummaryChange }) {
     const [summaryRows, setSummaryRows] = useState([]);
@@ -101,7 +135,9 @@ export default function WDSummaryTab({ totalSubjectWorkload, baseAllocations = [
             <div style={styles.tabHeader}>
                 <div style={{ display: 'flex', alignItems: 'center' }}>
                     <h3 style={styles.tabTitle}>Summary</h3>
-                    <InfoIcon />
+                    <Tooltip text="You can populate the summary section by clicking the button on the right; all staff members appearing above will be listed and their total workload allocation will be computed. This requires macros to be enabled. You can list any additional staff members manually. Use the columns “Agreed Allocation” and “Included Allocation” for Coordination for any adjustments or for a manual allocation.">
+                        <InfoIcon />
+                    </Tooltip>
                 </div>
                 <button style={styles.addButton} onClick={handleAddRow}>
                     <AddIcon /> Add

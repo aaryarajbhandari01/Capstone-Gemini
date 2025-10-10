@@ -1,11 +1,11 @@
-import React, { useState, useMemo, useEffect } from 'react';
+import React, { useState, useMemo, useEffect, useContext } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import SWBaseAllocationTab from '../component/SWBaseAllocationTab';
 import PerGroupAllocationTab from '../component/PerGroupAllocationTab'; 
 import PerDeliveryAllocationTab from '../component/PerDeliveryAllocationTab'; 
 import StaffRolesTab from '../component/StaffRolesTab';
 import PerStudentAllocationTab from '../component/PerStudentAllocationTab';
-import { StaffRolesProvider } from '../StaffRolesContext';
+import { StaffRolesContext, StaffRolesProvider } from '../StaffRolesContext';
 import ActivityAllocationTab from '../component/ActivityAllocationTab';
 import { useWorkload } from '../WorkloadContext';
 // --- Placeholder Tab Content Components ---
@@ -17,13 +17,6 @@ const PlaceholderTabContent = ({ title }) => (
     <p style={{ color: '#6c757d' }}>Content for this section will be built out here.</p>
   </div>
 );
-// const BaseAllocationTab = () => <PlaceholderTabContent title="Base Allocation" />;
-
-// const PerDeliveryAllocationTab = () => <PlaceholderTabContent title="Per-delivery Allocation" />;
-// const StaffRolesTab = () => <PlaceholderTabContent title="Staff Roles" />;
-// const PerStudentAllocationTab = () => <PlaceholderTabContent title="Per-student Allocation" />;
-// const ActivityAllocationTab = () => <PlaceholderTabContent title="Activity Allocation" />;
-// const PerGroupAllocationTab = () => <PlaceholderTabContent title="Per-group Allocation" />;
 
 // --- Icon and Helper Components ---
 const BackIcon = () => (
@@ -36,6 +29,8 @@ const BackIcon = () => (
 export default function SubjectWorkloadPage() {
     const navigate = useNavigate();
     const location = useLocation();
+    // Get roles directly from the context
+    const { definedRoles } = useContext(StaffRolesContext);
     //const { subject } = location.state || {};
         const { subject: initialSubject } = location.state || {};
      // --- 2. Get SHARED state from the context ---
@@ -43,6 +38,7 @@ export default function SubjectWorkloadPage() {
         deliveries, 
         firstOfferingOfYear,
     } = useWorkload();
+    
 
     // State to store the base allocation calculated in the child tab
     const [baseAllocationValue, setBaseAllocationValue] = useState(0);
@@ -53,11 +49,19 @@ export default function SubjectWorkloadPage() {
     const [activityAllocationValue, setActivityAllocationValue] = useState(0);
     const [numberOfStudents, setNumberOfStudents] = useState(100);
     const [subjectWorkloadStatus, setSubjectWorkloadStatus] = useState('incomplete');
+     // 1. ADD NEW STATE FOR ACTIVITY DATA
+    const [activityDataForValidation, setActivityDataForValidation] = useState([]);
+
+    const [perStudentRoleAllocations, setPerStudentRoleAllocations] = useState([]);
+    const [activityAllocationData, setActivityAllocationData] = useState([]);
+
+
     const [summaryData, setSummaryData] = useState({
         total_subject_workload: initialSubject?.totalSubjectWorkload || '0.0%',
         total_eftsl_for_subject: "12.5",
         total_administrative_loadings: "0.0%"
     });
+
 
     // State for the summary panel and tab status
     
@@ -105,6 +109,19 @@ const handleNext = () => {
             firstOfferingOfYear: firstOfferingOfYear,
             perDeliveryAllocationData: deliveries, // This is the full, enriched array
             
+           // validation data for per student per activity allocation
+            validationData: {
+                totalStudents: numberOfStudents,
+                activityGroups: activityDataForValidation,
+            },
+
+            sourceData: {
+                totalStudents: numberOfStudents,
+                perStudentAllocations: perStudentRoleAllocations,
+                activityAllocations: activityAllocationData,
+                definedRoles: definedRoles,
+            },
+
             // 3. Static or other required values
             increaseToBaseAllocation: 0,
             calculationInputs: {
@@ -168,11 +185,14 @@ const handleNext = () => {
                     onAllocationChange={handlePerStudentAllocationChange} 
                     onStudentsChange={setNumberOfStudents} 
                     numberOfStudents={numberOfStudents}
+                    onAllocationDataChange={setPerStudentRoleAllocations} 
                 />,
                 "Activity Allocation": <ActivityAllocationTab 
                     term={initialSubject.term} 
                     onAllocationChange={handleActivityAllocationChange}
                     numberOfStudents={numberOfStudents} 
+                  // onActivityDataChange={setActivityDataForValidation}
+                    onActivityDataChange={setActivityAllocationData}
                 />
             };
         } else {
@@ -197,7 +217,7 @@ const handleNext = () => {
     const isNextDisabled = subjectWorkloadStatus === 'incomplete';
     
     return (
-        <StaffRolesProvider>
+       
         <div style={styles.container}>
             <header style={styles.header}><button style={styles.backButton} onClick={() => navigate('/')}><BackIcon /> Back to Subject List</button><h1 style={styles.title}>Subject Workload - {initialSubject.formatOfDelivery}</h1></header>
             
@@ -261,7 +281,7 @@ const handleNext = () => {
                 </div>
             </div>
         </div>
-          </StaffRolesProvider>
+       
     );
 }
 
