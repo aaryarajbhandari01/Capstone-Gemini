@@ -17,7 +17,7 @@ const validateAllocation = (data) => {
 
     // Task Validation
     if (!task || !task.trim()) errors.task = "Task cannot be empty.";
-    else if (/^\d+$/.test(task.trim())) errors.task = "Invalid Task! Task cannot be numbers.";
+    else if (/[^a-zA-Z\s]/.test(task.trim())) errors.task = "Invalid Task! Task cannot be numbers.";
     else if (/[^a-zA-Z0-9\s,.]/.test(task)) errors.task = "Invalid Task! Task cannot have special characters (except ',' and '.').";
 
     // Staff Member Validation

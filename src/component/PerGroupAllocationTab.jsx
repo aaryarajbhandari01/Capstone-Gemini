@@ -237,10 +237,10 @@ const PerGroupAllocationTab = ({ onPerGroupAllocationChange, onProjectDataChange
 
         // Validation
         if (isNaN(numGroups) || numGroups <= 0) {
-            newErrors.numberOfGroups = "Must be a positive number.";
+            newErrors.numberOfGroups = "Invalid typical number of group. Must be a positive number.";
         }
         if (isNaN(numStudents) || numStudents < 1) {
-            newErrors.studentsPerGroup = "Must be 1 or more.";
+            newErrors.studentsPerGroup = "Invalid typical number of students in a group. Must be a positive number.";
         }
         setErrors(newErrors);
 
