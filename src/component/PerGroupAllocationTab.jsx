@@ -35,8 +35,9 @@ const InfoPopup = ({ onClose }) => (
     </div>
 );
 
-const PerGroupAllocationTab = ({ onPerGroupAllocationChange, onAllocationChange }) => {
+const PerGroupAllocationTab = ({ onPerGroupAllocationChange, onAllocationChange, onProjectDataChange }) => {
     // --- State Management ---
+    const [projectGroups, setProjectGroups] = useState(25);
     const [numberOfGroups, setNumberOfGroups] = useState('5');
     const [creditPointValue, setCreditPointValue] = useState('10 CP');
     const [studentsPerGroup, setStudentsPerGroup] = useState('5');
@@ -91,7 +92,11 @@ const PerGroupAllocationTab = ({ onPerGroupAllocationChange, onAllocationChange 
         if (onAllocationChange) {
             onAllocationChange(perGroupAllocation);
         }
-    }, [perGroupAllocation, onPerGroupAllocationChange, onAllocationChange]);
+
+        if (onProjectDataChange) {
+            onProjectDataChange(projectGroups, studentsPerGroup);
+        }
+    }, [perGroupAllocation, projectGroups, studentsPerGroup,onPerGroupAllocationChange, onAllocationChange, , onProjectDataChange]);
 
     const handleSave = () => {
         // Only show message if form is valid

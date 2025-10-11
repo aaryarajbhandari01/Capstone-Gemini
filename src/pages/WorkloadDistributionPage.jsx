@@ -4,7 +4,8 @@ import WDBaseAllocationTab from '../component/WDBaseAllocationTab';
 import WDSummaryTab from '../component/WDSummaryTab';
 import WDPerDeliveryAllocationTab from '../component/WDPerDeliveryAllocationTab';
 import WDPerStudentPerActivityAllocationTab from '../component/WDPerStudentPerActivityAllocationTab';
-import { StaffRolesProvider } from '../StaffRolesContext';
+import { StaffRolesProvider} from '../StaffRolesContext';
+
 
 // --- Static UI Configuration ---
 // This defines the tab structure for different delivery formats.
@@ -129,7 +130,7 @@ export default function WorkloadDistributionPage() {
             perDeliveryAllocation: <WDPerDeliveryAllocationTab subject={subject}/>,
             perStudentActivityAllocation: <WDPerStudentPerActivityAllocationTab 
                                                 subject={subject} 
-                                               sourceOfTruthData={validationData}
+                                              //  sourceOfTruthData={validationData}
                                                 sourceData={subject.sourceData}/>,
             summary: <WDSummaryTab 
                         totalSubjectWorkload={totalSubjectWorkload}

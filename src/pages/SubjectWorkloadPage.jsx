@@ -42,12 +42,20 @@ export default function SubjectWorkloadPage() {
 
     // State to store the base allocation calculated in the child tab
     const [baseAllocationValue, setBaseAllocationValue] = useState(0);
+    const [adminLoadingValue, setAdminLoadingValue] = useState(0);
     const [perGroupAllocationValue, setPerGroupAllocationValue] = useState(0);
     const [perDeliveryAllocationValue, setPerDeliveryAllocationValue] = useState(0);
     //const [staffRoles, setStaffRoles] = useState([]);
     const [perStudentAllocationValue, setPerStudentAllocationValue] = useState(0);
     const [activityAllocationValue, setActivityAllocationValue] = useState(0);
     const [numberOfStudents, setNumberOfStudents] = useState(100);
+    
+    
+    // FIX: Add state for project-based EFTSL calculation inputs
+    const [numberOfProjectGroups, setNumberOfProjectGroups] = useState(25); // Default from spreadsheet
+    const [studentsPerGroup, setStudentsPerGroup] = useState(10); // Default from spreadsheet
+
+    
     const [subjectWorkloadStatus, setSubjectWorkloadStatus] = useState('incomplete');
      // 1. ADD NEW STATE FOR ACTIVITY DATA
     const [activityDataForValidation, setActivityDataForValidation] = useState([]);
@@ -58,7 +66,7 @@ export default function SubjectWorkloadPage() {
 
     const [summaryData, setSummaryData] = useState({
         total_subject_workload: initialSubject?.totalSubjectWorkload || '0.0%',
-        total_eftsl_for_subject: "12.5",
+        total_eftsl_for_subject: "0.0",
         total_administrative_loadings: "0.0%"
     });
 
@@ -76,25 +84,66 @@ export default function SubjectWorkloadPage() {
    // const handleRolesChange = (updatedRoles) => {setStaffRoles(updatedRoles);};
     const handleActivityAllocationChange = (value) => setActivityAllocationValue(value); // NEW: Handler for Activity Allocation
 
-
+// FIX: Add handler to get data from PerGroupAllocationTab for EFTSL calculation
+    const handleProjectDataChange = (groups, students) => {
+        setNumberOfProjectGroups(groups);
+        setStudentsPerGroup(students);
+    };
     
 
+    // useEffect(() => {
+    //     const totalWorkload = (baseAllocationValue || 0) + 
+    //                           (perGroupAllocationValue || 0) + 
+    //                           (perDeliveryAllocationValue || 0) +
+    //                           (perStudentAllocationValue || 0) +
+    //                           (activityAllocationValue || 0);
+
+    //     const workloadPercentage = (totalWorkload * 100).toFixed(1);
+        
+    //     setSummaryData(prevData => ({
+    //         ...prevData,
+    //         total_subject_workload: `${workloadPercentage}%`
+    //     }));
+    // }, [baseAllocationValue, perGroupAllocationValue, perDeliveryAllocationValue, perStudentAllocationValue, activityAllocationValue]);
+
+
+    // --- MAIN CALCULATION LOGIC ---
     useEffect(() => {
-        const totalWorkload = (baseAllocationValue || 0) + 
-                              (perGroupAllocationValue || 0) + 
+        const isLectureBased = initialSubject?.formatOfDelivery.toLowerCase().includes('lecture');
+
+        // 1. Calculate Total Subject Workload
+        const totalWorkload = (baseAllocationValue || 0) +
+                              (perGroupAllocationValue || 0) +
                               (perDeliveryAllocationValue || 0) +
                               (perStudentAllocationValue || 0) +
                               (activityAllocationValue || 0);
 
-        const workloadPercentage = (totalWorkload * 100).toFixed(1);
-        
-        setSummaryData(prevData => ({
-            ...prevData,
-            total_subject_workload: `${workloadPercentage}%`
-        }));
-    }, [baseAllocationValue, perGroupAllocationValue, perDeliveryAllocationValue, perStudentAllocationValue, activityAllocationValue]);
+        // 2. Calculate Total EFTSL based on delivery format
+        let totalEftsl = 0;
+        if (isLectureBased) {
+            const FULL_TIME_ANNUAL_HOURS = 1200;
+            const totalStudentHours = initialSubject?.calculationInputs?.totalStudentHours || 150;
+            const eftslPerStudent = totalStudentHours / FULL_TIME_ANNUAL_HOURS;
+            totalEftsl = eftslPerStudent * numberOfStudents;
+        } else { // Project-based logic
+            totalEftsl = (numberOfProjectGroups * studentsPerGroup) / 8;
+        }
 
+        // 3. Determine Administrative Loading based on delivery format
+        const adminLoadingDisplay = isLectureBased ? (adminLoadingValue * 100).toFixed(1) : '0.0';
 
+        // 4. Update Summary State
+        setSummaryData({
+            total_subject_workload: `${(totalWorkload * 100).toFixed(1)}%`,
+            total_eftsl_for_subject: totalEftsl.toFixed(1),
+            total_administrative_loadings: `${adminLoadingDisplay}%`
+        });
+
+    }, [
+        baseAllocationValue, perGroupAllocationValue, perDeliveryAllocationValue, perStudentAllocationValue, activityAllocationValue,
+        numberOfStudents, adminLoadingValue, initialSubject,
+        numberOfProjectGroups, studentsPerGroup // FIX: Add new dependencies
+    ]);
 const handleNext = () => {
         // Create the complete object for the next page
         const subjectForNextPage = {
@@ -198,7 +247,11 @@ const handleNext = () => {
         } else {
             return {
                 "Base Allocation": <SWBaseAllocationTab subjectCode={initialSubject.subjectCode} term={initialSubject.term} onBaseAllocationChange={handleBaseAllocationChange} />,
-                "Per-group Allocation": <PerGroupAllocationTab onPerGroupAllocationChange={handlePerGroupAllocationChange} onAllocationChange={handleAllocationChange} numberOfStudents={numberOfStudents}/>
+                "Per-group Allocation": <PerGroupAllocationTab 
+                onPerGroupAllocationChange={handlePerGroupAllocationChange} 
+                onAllocationChange={handleAllocationChange} 
+                numberOfStudents={numberOfStudents}
+                 onProjectDataChange={handleProjectDataChange} />
             };
         }
     }, [initialSubject, numberOfStudents]);
@@ -207,7 +260,7 @@ const handleNext = () => {
     const tabNames = Object.keys(TABS_CONFIG);
     const [activeTab, setActiveTab] = useState(tabNames.length > 0 ? tabNames[0] : null);
 
-    const subjectSummaryData = { total_subject_workload: initialSubject?.totalSubjectWorkload || 'N/A', total_eftsl_for_subject: "12.5", total_administrative_loadings: "0.0%" };
+    const subjectSummaryData = { total_subject_workload: initialSubject?.totalSubjectWorkload || 'N/A', total_eftsl_for_subject: "N/A", total_administrative_loadings: "N/A" };
 
     // if (!subject) {
      if (!initialSubject) {
