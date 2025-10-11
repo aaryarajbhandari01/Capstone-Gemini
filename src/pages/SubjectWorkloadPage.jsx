@@ -489,7 +489,7 @@ export default function SubjectWorkloadPage() {
     //const [staffRoles, setStaffRoles] = useState([]);
     const [perStudentAllocationValue, setPerStudentAllocationValue] = useState(0);
     const [activityAllocationValue, setActivityAllocationValue] = useState(0);
-    const [numberOfStudents, setNumberOfStudents] = useState(100);
+    const [numberOfStudents, setNumberOfStudents] = useState(0);
     
     
     // FIX: Add state for project-based EFTSL calculation inputs
