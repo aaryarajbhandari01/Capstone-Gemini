@@ -142,9 +142,12 @@ This project is for academic and research purposes.
 **Aarya Rajbhandari**
 
 ## Co-Author
-**Hung-Jeng Lin **
-**Noshin Sharmili **
-**Gayeon Lee **
+**Hung-Jeng Lin**
+
+**Noshin Sharmili**
+
+**Gayeon Lee**
+
 **Mansi Karki**
 
 
